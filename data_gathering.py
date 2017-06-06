@@ -232,7 +232,7 @@ logging.info('Final dataframe')
 display(uwords_df)
 
 
-# %% Transforming the data - Making a dataframe array
+# %% Transforming the data - Making dataframes
 
 # Used in the transformations
 column_headers = np.concatenate((
