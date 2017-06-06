@@ -45,7 +45,13 @@ def cd(dir):  # Must be a generator
 
 
 def list_dir(path=None):
-    '''Lists the items in the directory, but ommits hidden files.'''
+    '''Lists the items in the directory, but ommits hidden files.
+        Arguments:
+            path (str, optional): path to a directory you want to list
+        Examples:
+        >>> print(list_dir()) # Omits files that start with '.'
+        ['folder', 'file.ext']
+    '''
     return [item for item in os.listdir(path) if not item.startswith('.')]
 
 
@@ -65,7 +71,8 @@ def get_word_dict(filename):
     Returns:
         dict: The {word: occurences} dictionary for that file
     Examples:
-        counts = get_word_dict('to_process.txt')
+        >>> counts = get_word_dict('to_process.txt')
+        {'word1': 1, 'word2': 2, }
     '''
     return_dict = {}
     with open(filename, 'r', errors='ignore') as f:
@@ -82,6 +89,17 @@ def get_word_dict(filename):
 
 
 def get_word_dict_proper(filename, proper_words):
+    '''
+    Counts the occurances of a word in a file given filename
+    Arguments:
+        filename (str): The name or path of a file you want to process
+        proper_words (list): The list of the words that we want to select
+    Returns:
+        dict: The {word: occurences} dictionary for that file
+    Examples:
+        >>> counts = get_word_dict_proper('to_process.txt', popular_words)
+        {'word1': 1, 'word2': 2, }
+    '''
     return_dict = {word: 0 for word in proper_words}
     with open(filename, 'r', errors='ignore') as f:
         linelist = list(f)
@@ -104,7 +122,8 @@ def generate_classes(folder_name):
         Returns:
             dict: A dictionary {class_name: class_value}
         Examples:
-            class_dict = generate_classes('train') # {'sci.electronics':0, }
+            >>> class_dict = generate_classes('train')
+            {'sci.electronics':0, }
     '''
     return_dict = {}
     i = 0
@@ -121,13 +140,13 @@ def check_df(dataframe, class_dict, df_type='train', coverage_pct=.05):
         Checks whether a dataframe is valid based on random selection of rows
         Arguments:
             dataframe (pd.DataFrame): The dataframe to be checked
-            reverse_class_dict (dict): The dictionary {'class_name': number}
+            class_dict (dict): The {'class_name': class_number} dictionary
             df_type (string): 'test' or 'train'
-            coverate_pct (float): The percentage of rows to check
+            coverage_pct (float): The percentage of rows to check
         Returns:
             bool: True if it's valid, False if it's not
         Examples:
-            >>> is_valid = check_df(my_df, class_dict, rows_to_check=10)
+            >>> is_valid = check_df(my_df, class_dict, rows_to_check=10, coverage_pct=0.25)
             True
     '''
     word_columns = dataframe.columns.tolist()[2:]  # This is faster than regex
@@ -143,7 +162,6 @@ def check_df(dataframe, class_dict, df_type='train', coverage_pct=.05):
                                           .format(word, counts[word], row[word]))
                             logging.error('Row:\n{}'.format(row))
                             return False
-
     except KeyError:
         pass
     except Exception:
@@ -154,6 +172,17 @@ def check_df(dataframe, class_dict, df_type='train', coverage_pct=.05):
 
 
 def get_total_word_count(folder_name):
+    '''
+        Checks whether a dataframe is valid based on random selection of rows
+        Arguments:
+            folder_name (str): The class folder you want to parse
+        Returns:
+            bool: Dictionary of word counts in all of the files.
+                Dict structure: {'word': (total_occurances, total_occured_files)}
+        Examples:
+            >>> twc = get_total_word_count('test_folder')
+            {'the': (1005, 21), }
+    '''
     twc_dict = {}
     logging.info('Getting the total word count in {}'.format(folder_name))
     with cd(folder_name):
@@ -181,8 +210,7 @@ def process_data_folder(folder_name, class_dict, popular_words):
     Arguments:
         folder_name (str): The name or path of a data folder you want to process
         class_dict (dict): A dictionary of classes {class_name: class_number}
-        popular_words (iterable): An iterable of strings that has the words that
-            we should count.
+        popular_words (list<string>): A list of words to count
     Returns:
         np.array(str): The column names for every file
         np.array(np.array(int)): The array of values corresponding to the column names
@@ -267,10 +295,10 @@ display(uwords_df)
 with cd('data'):
     logging.info('Getting the train data...')
     train_cols, train_vals = process_data_folder(
-        'train', class_dict, uwords_df.T.values[0])
+        'train', class_dict, uwords_df.values[:, 0])
     logging.info('Getting the test data...')
     test_cols, test_vals = process_data_folder(
-        'test', class_dict, uwords_df.T.values[0])
+        'test', class_dict, uwords_df.values[:, 0])
 
 
 logging.info('Train data sample:')
