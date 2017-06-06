@@ -53,7 +53,7 @@ def list_dir():
 WORD_PATTERN = re.compile('[a-z][a-z][a-z]+')
 # Removing "Key: value" stuff
 HEADER_PATTERN = re.compile('^[A-Z][a-z]+([- ]\w+){0,2}:.+$')
-EMAIL_PATTERN = re.compile('\w+?@.+?')
+EMAIL_PATTERN = re.compile('\w+?@\w+?\.\w+?')
 
 
 def get_word_dict(filename):
@@ -167,10 +167,6 @@ if 'test' not in os.listdir('data') or 'train' not in os.listdir('data'):
     sys.exit('Bad structure of the data folder. '
              'Make sure that the data folder contains "test" and "train" dirs.')
 
-# if 'data.npy' in os.listdir():
-#     # TODO: Implement reading data from a file as an arg
-#     sys.exit(0)
-
 
 with cd('data'):
     logging.info('Generating classes...')
@@ -240,6 +236,7 @@ column_headers = np.concatenate((
               'prediction_class']),
     uwords_df.T.values[0])
 ).astype(np.dtype('str'))
+
 # Used in the resulting dataframes
 column_headers_sorted = np.sort(column_headers)
 
