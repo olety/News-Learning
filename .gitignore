@@ -1,5 +1,7 @@
 # Large files
 dataframes/*.csv
+# Changelog
+CHANGELOG.md
 # Created by https://www.gitignore.io/api/macos,linux,python
 
 ### Linux ###
