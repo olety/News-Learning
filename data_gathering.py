@@ -7,6 +7,7 @@ import sys
 import traceback
 from contextlib import contextmanager  # To make a cd function
 
+import matplotlib.pyplot as plt
 import numpy as np  # Arrays
 import pandas as pd  # Dataframes
 from IPython.display import display
@@ -61,7 +62,7 @@ WORD_PATTERN = re.compile('(?:[a-z][a-z][a-z]+)')
 # Removing "Key: value" stuff
 HEADER_PATTERN = re.compile('^[A-Z][a-z]+([- ]\w+){0,2}:.+$')
 EMAIL_PATTERN = re.compile('(?:\w+?@\w+?\.\w+?)')
-WEBSITE_PATTERN = re.compile('((?:http://){0,1}(?:www.){0,1}(?:[a-z0-9_]+?\.)'
+WEBSITE_PATTERN = re.compile('((?:http://|https://){0,1}(?:www.){0,1}(?:[a-z0-9_]+?\.)'
                              '(?:[a-z0-9_]+(?:\.){0,1}){1,3})')
 
 
@@ -252,6 +253,22 @@ def process_data_folder(folder_name, class_dict, popular_words):
     return (np.array(return_cols), np.array(return_vals))
 
 
+def top_rows(word_df, num_rows, add_counts=False):
+    if add_counts:
+        return pd.DataFrame(
+            data=(
+                (word_df[:NUMBER_TOP_WORDS])
+                .reset_index(drop=True)  # Resetting index to be tidy
+            )
+        )
+    return pd.DataFrame(
+        data=(
+            (word_df[:NUMBER_TOP_WORDS])['words']
+            .reset_index(drop=True)  # Resetting index to be tidy
+        )
+    )
+
+
 # %% Reading the files - getting the popular words
 if 'data' not in list_dir():
     sys.exit('Could not find the data folder. '
@@ -269,7 +286,7 @@ with cd('data'):
     twc_train = get_total_word_count('train')
 
 # %% Transforming the data - selecting the most common words
-NUMBER_TOP_WORDS = 10000
+NUMBER_TOP_WORDS = 10_000
 
 # Making the 2d array from a dictionary
 wordlist = [[w, v[0], v[1]] for (w, v) in twc_train.items()]
@@ -285,18 +302,22 @@ word_df['count_files'] = pd.to_numeric(word_df['count_files'])
 # Sort the values
 word_df.sort_values(by=['count', 'count_files'], axis=0, inplace=True,
                     ascending=False)
+word_df.reset_index(inplace=True, drop=True)
 
-# Selecting the top words
-word_df = word_df[:NUMBER_TOP_WORDS]
+# %% Visualizing the data
+every_other = 1  # taking every element
 
-logging.info('Selected {} most popular words:'.format(NUMBER_TOP_WORDS))
-display(word_df)
+temp_df = word_df.iloc[:, 1:3]
+display(temp_df)
+plt.show(temp_df.plot.scatter(x='count', y='count_files'))
 
-# Resetting index to be tidy
-uwords_series = word_df['words'].reset_index(drop=True)
+temp_df = temp_df[:NUMBER_TOP_WORDS]
+display(temp_df)
+plt.show(temp_df.plot.scatter(x='count', y='count_files'))
 
-# Resulting dataframe
-uwords_df = pd.DataFrame(data=uwords_series)
+# %%Resulting dataframe
+logging.info(f'Selecting {NUMBER_TOP_WORDS} most popular words:')
+uwords_df = top_rows(word_df, NUMBER_TOP_WORDS, False)
 logging.info('Final dataframe')
 display(uwords_df)
 
@@ -327,14 +348,10 @@ display(pd.DataFrame(test_vals[0]).T)
 # Train
 logging.info('Making the train dataframe...')
 train_df = pd.DataFrame(data=np.stack(train_vals), columns=train_cols)
-logging.info('Train DF:')
-display(train_df)
 
 # Test
 logging.info('Making the test dataframe...')
 test_df = pd.DataFrame(data=np.stack(test_vals), columns=test_cols)
-logging.info('Test DF:')
-display(test_df)
 
 # Checking
 PCT_TO_CHECK = 0.10
@@ -357,6 +374,22 @@ logging.info('Checking the test_df ({}/{} rows): {}!'.format(
     else 'Didn\'t pass the check!',
 ))
 
+
+# Final transforms
+logging.info('Final train DF:')
+train_df = train_df.iloc[:, 1:]
+display(train_df)
+
+logging.info('Final test DF:')
+test_df = test_df.iloc[:, 1:]
+display(test_df)
+
+# %% Making a class name df
+class_df = pd.DataFrame(data=[name for name, _ in class_dict.items()],
+                        index=[val for _, val in class_dict.items()],
+                        columns=['class_name'])
+
+display(class_df)
 # %% Saving the results
 
 # Change this at will
@@ -365,7 +398,8 @@ options = {
     'archive': True,
     'save_folder': 'dataframes',
     'train_fname': 'train_df',
-    'test_fname': 'test_df'
+    'test_fname': 'test_df',
+    'class_fname': 'class_df'
 }
 
 if options['save']:
@@ -390,20 +424,31 @@ if options['save']:
                               .format(options['test_fname']))),
             'compression':
                 'gzip' if options['archive'] else None
+        },
+        'class': {
+            'path_or_buf':
+                os.path.join(options['save_folder'],
+                             (('{}.csv.gz' if options['archive'] else '{}.csv')
+                              .format(options['class_fname']))),
+            'compression':
+                'gzip' if options['archive'] else None
         }
     }
 
+    # Class df
+    logging.info(
+        f'Saving the Class DF to "{options["class"]["path_or_buf"]}"...')
+    class_df.to_csv(**options['class'])
+    logging.info('Finished saving the class DF')
+
     # Train df
     logging.info(
-        'Saving the train DF to "{}"...'
-        .format(options['train']['path_or_buf']),
+        f'Saving the train DF to "{options["train"]["path_or_buf"]}"...'
     )
     train_df.to_csv(**options['train'])
     logging.info('Finished saving the train DF')
 
     # Test df
-    logging.info(
-        'Saving the test DF to "{}"...'.format(options['test']['path_or_buf']),
-    )
+    logging.info(f'Saving the test DF to "{options["test"]["path_or_buf"]}"...')
     test_df.to_csv(**options['test'])
     logging.info('Finished saving the test DF')

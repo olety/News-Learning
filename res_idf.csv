@@ -1,0 +1,4 @@
+,feature_selector,name,score
+0,All features,Multinomial Naive Bayes,0.7696136713894701
+1,All features,MLP NN lr=1e-3,0.9167784554831929
+2,All features,MLP NN lr=1e-2,0.914215162930193

@@ -1,0 +1,16 @@
+,feature_selector,name,score
+0,Percentile selector (30%),Logistic regression [idf],0.798261475
+1,Percentile selector (30%),MLP NN lr=1e-4 [idf],0.895404028
+2,Percentile selector (30%),MLP NN lr=1e-3 [idf],0.895404028
+3,Percentile selector (30%),MLP NN lr=1e-2 [idf],0.886436893
+4,Percentile selector (30%),Multinomial Naive Bayes [idf],0.773902071
+5,Model selector (random forest),Logistic regression [idf],0.808374325
+6,Model selector (random forest),MLP NN lr=1e-4 [idf],0.902385369
+7,Model selector (random forest),MLP NN lr=1e-3 [idf],0.902385369
+8,Model selector (random forest),MLP NN lr=1e-2 [idf],0.897823264
+9,Model selector (random forest),Multinomial Naive Bayes [idf],0.775895384
+10,All features,Logistic regression [idf],0.81919047
+11,All features,MLP NN lr=1e-4 [idf],0.913774369
+14,All features,Multinomial Naive Bayes [idf],0.769613671
+12,All features,MLP NN lr=1e-3 [idf],0.916778455
+13,All features,MLP NN lr=1e-2 [idf],0.914215163
